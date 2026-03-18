@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -20,6 +21,12 @@ func Load() *Config {
 			Password: getEnv("DB_PASSWORD", "p"),
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnvAsInt("DB_PORT", 5432),
+		},
+		CORS: CORSConfig{
+			AllowedOrigins: strings.Split(
+				getEnv("CORS_ORIGINS", ""),
+				",",
+			),
 		},
 		App: AppConfig{
 			Dir: getEnv("DIR", "/public/"),

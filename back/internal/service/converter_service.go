@@ -38,7 +38,7 @@ func (s *ConverterService) ConvertToAudio(filename string) error {
 	base := filepath.Base(filename)
 	name := strings.TrimSuffix(base, filepath.Ext(base))
 
-	outputPath := filepath.Join(s.fileService.Dir, audioDir, name+".mp3")
+	outputPath := filepath.Join(s.fileService.GetDir(), audioDir, name+".mp3")
 
 	cmd := exec.Command(
 		"ffmpeg",

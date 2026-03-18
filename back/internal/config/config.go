@@ -3,6 +3,7 @@ package config
 type Config struct {
 	Server ServerConfig
 	DB     DBConfig
+	CORS   CORSConfig
 	App    AppConfig
 	Bot    BotConfig
 }
@@ -26,4 +27,8 @@ type AppConfig struct {
 type BotConfig struct {
 	URL   string
 	Token string
+}
+
+type CORSConfig struct {
+	AllowedOrigins []string
 }
