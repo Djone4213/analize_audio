@@ -75,6 +75,7 @@ func main() {
 	api.Use(middleware.Middleware())
 	api.HandleFunc("/audio", aHand.Get).Methods("GET")
 	api.HandleFunc("/audio", aHand.Add).Methods("POST")
+	api.HandleFunc("/audio/{id}", aHand.GetByID).Methods("GET")
 
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   cfg.CORS.AllowedOrigins,

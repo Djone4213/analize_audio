@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getAudioList } from "../../services/audioApi";
 
 export default function Home() {
@@ -38,8 +38,9 @@ export default function Home() {
             <ul>
                 {files.map((f) => (
                     <li key={f.id}>
-                        {f.src_file_name}
-                        {f.thems?.length > 0 && ` (${f.thems.join(", ")})`}
+                        <Link to={`/details/${f.id}`}>
+                            {f.src_file_name}
+                        </Link>
                     </li>
                 ))}
             </ul>

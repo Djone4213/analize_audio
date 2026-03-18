@@ -16,8 +16,19 @@ func NewAudioService(audioRep *repositories.AudioRepository) *AudioService {
 	}
 }
 
-func (s *AudioService) Create(ctx context.Context, audio model.Audio) error {
-	return s.audioRep.Create(ctx, audio)
+func (s *AudioService) Create(ctx context.Context, audio model.Audio, thems []string) error {
+	audioCreate, err := s.audioRep.Create(ctx, audio)
+	if err != nil {
+		return err
+	}
+
+	for _, them := range thems {
+		_ = s.audioRep.CreateThem(ctx, model.AudioThem{
+			AudioID: audioCreate.ID,
+			Theme:   them,
+		})
+	}
+	return nil
 }
 
 func (s *AudioService) Get(ctx context.Context) ([]model.Audio, error) {

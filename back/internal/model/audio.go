@@ -18,3 +18,8 @@ type Audio struct {
 	IsMessageRead           bool      `json:"message_is_read"`
 	CreatedAt               time.Time `json:"created_at"`
 }
+
+type AudioThem struct {
+	AudioID string `json:"audio_id"`
+	Theme   string `json:"theme"`
+}

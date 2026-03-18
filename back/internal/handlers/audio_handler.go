@@ -5,10 +5,12 @@ import (
 	"analize_audio/internal/service"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type AudioHandler struct {
@@ -105,11 +107,51 @@ func (h *AudioHandler) Add(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:       time.Now(),
 	}
 
-	if err := h.audioService.Create(r.Context(), audio); err != nil {
+	if err := h.audioService.Create(r.Context(), audio, thems); err != nil {
 		_ = h.fileService.RemoveByFullPath(r.Context(), fullFilePath)
 		WriteError(w, http.StatusInternalServerError, "Не удалось сохранить фильм")
 		return
 	}
 
 	WriteJSON(w, http.StatusOK, nil)
+}
+
+func (h *AudioHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	audio, err := h.audioService.GetByID(r.Context(), id)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	var analysisText string
+	var transcribedText string
+
+	if audio.IsMessageRead {
+		if audio.MessageTextFullFilePath != nil {
+			fileText, err := os.ReadFile(*audio.MessageTextFullFilePath)
+			if err == nil {
+				analysisText = string(fileText)
+			}
+		}
+	}
+
+	if audio.HasTranscribed {
+		if audio.TranscribedFullFilePath != nil {
+			fileText, err := os.ReadFile(*audio.TranscribedFullFilePath)
+			if err == nil {
+				transcribedText = string(fileText)
+			}
+		}
+	}
+
+	payload := map[string]interface{}{
+		"id":               audio.ID,
+		"src_file_name":    audio.SrcFileName,
+		"analysis_text":    analysisText,
+		"transcribed_text": transcribedText,
+	}
+
+	WriteJSON(w, http.StatusOK, payload)
 }

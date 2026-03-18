@@ -9,6 +9,7 @@ import (
 func Migrate(DB *gorm.DB) {
 	if err := DB.AutoMigrate(
 		&model.Audio{},
+		&model.AudioThem{},
 	); err != nil {
 		panic(err)
 	}

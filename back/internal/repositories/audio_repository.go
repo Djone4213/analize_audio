@@ -15,8 +15,9 @@ func NewAudioRepository(db *gorm.DB) *AudioRepository {
 	return &AudioRepository{db: db}
 }
 
-func (r *AudioRepository) Create(ctx context.Context, audio model.Audio) error {
-	return r.db.Create(&audio).Error
+func (r *AudioRepository) Create(ctx context.Context, audio model.Audio) (model.Audio, error) {
+	err := r.db.Create(&audio).Error
+	return audio, err
 }
 
 func (r *AudioRepository) Get(ctx context.Context) ([]model.Audio, error) {
@@ -65,4 +66,8 @@ func (r *AudioRepository) GetMessagesForRead(ctx context.Context) ([]model.Audio
 		Where("is_message_send = true and is_message_read = false").
 		Find(&audios).Error
 	return audios, err
+}
+
+func (r *AudioRepository) CreateThem(ctx context.Context, audioThem model.AudioThem) error {
+	return r.db.Create(&audioThem).Error
 }
