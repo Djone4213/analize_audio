@@ -32,8 +32,9 @@ func Load() *Config {
 			Dir: getEnv("DIR", "/public/"),
 		},
 		Bot: BotConfig{
-			Token: getEnv("BOT_TOKEN", ""),
-			URL:   getEnv("BOT_URL", ""),
+			Token:  getEnv("BOT_TOKEN", ""),
+			URL:    getEnv("BOT_URL", ""),
+			ChatID: getEnv("BOT_CHAT_ID", ""),
 		},
 	}
 }

@@ -6,10 +6,13 @@ import (
 	"analize_audio/internal/middleware"
 	"analize_audio/internal/repositories"
 	"analize_audio/internal/service"
+	"analize_audio/internal/worker"
 	"analize_audio/pkg/db/gorm"
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -23,23 +26,45 @@ func main() {
 	DB := gorm.InitDB(cfg.DB.Host, cfg.DB.Name, cfg.DB.User, cfg.DB.Password, cfg.DB.Port)
 	repositories.Migrate(DB)
 
-	arep := repositories.NewAudioRepository(DB)
+	aRep := repositories.NewAudioRepository(DB)
 
-	fserv := service.NewFileService(cfg.App.Dir)
-	aser := service.NewAudioService(arep)
-	//cserv := service.NewConverterService(fserv)
-	//cserv.ProcessConvertFiles()
-	////_ = cserv
-	//
-	//bhserv := service.NewBotHubService(cfg.Bot.URL, cfg.Bot.Token, fserv)
-	//bhserv.ProcessFileTranscribe()
+	fServ := service.NewFileService(cfg.App.Dir)
+	aServ := service.NewAudioService(aRep)
 
-	ahand := handlers.NewAudioHandler(aser, fserv)
+	outputAudioDir := filepath.Join(cfg.App.Dir, "audio")
+	outputTranscribeDir := filepath.Join(cfg.App.Dir, "transcribe")
+	outputContentDir := filepath.Join(cfg.App.Dir, "content")
+
+	if err := fServ.CreateFullPath(outputAudioDir); err != nil {
+		log.Fatalf("Ошибка создания пути для сохранения аудио файлов: %v", err)
+	}
+
+	if err := fServ.CreateFullPath(outputTranscribeDir); err != nil {
+		log.Fatalf("Ошибка создания пути для сохранения файлов транскрибации: %v", err)
+	}
+
+	if err := fServ.CreateFullPath(outputContentDir); err != nil {
+		log.Fatalf("Ошибка создания пути для сохранения файлов с результатами ответов: %v", err)
+	}
+
+	// 🔥 запускаем worker
+	cServ := service.NewConverterService(aServ, outputAudioDir)
+	convWorker := worker.NewConverterWorker(cServ, time.Minute)
+	convWorker.Start()
+
+	// 🔥 worker для транскрибации
+	bhServ := service.NewBotHubService(cfg.Bot.URL, cfg.Bot.Token, aServ, outputTranscribeDir, outputContentDir)
+	transcribeWorker := worker.NewTranscribeWorker(bhServ, time.Minute)
+	transcribeWorker.Start()
+
+	bhServ.ProcessReadMessages()
+
+	aHand := handlers.NewAudioHandler(aServ, fServ)
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(middleware.Middleware())
-	api.HandleFunc("/audio", ahand.Get).Methods("GET")
-	api.HandleFunc("/audio", ahand.Add).Methods("POST")
+	api.HandleFunc("/audio", aHand.Get).Methods("GET")
+	api.HandleFunc("/audio", aHand.Add).Methods("POST")
 
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   cfg.CORS.AllowedOrigins,

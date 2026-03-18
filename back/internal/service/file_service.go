@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -28,9 +27,10 @@ func (s *FileService) SaveFile(part *multipart.Part, fileName string, dirSave st
 
 	filePath := filepath.Join(s.dir, dirSave, fileName)
 
-	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
+	if err := s.CreateFullPath(filepath.Dir(filePath)); err != nil {
 		return "", fmt.Errorf("не удалось создать каталог: %w", err)
 	}
+
 	if _, err := os.Stat(filePath); err == nil {
 		_ = os.Remove(filePath)
 	}
@@ -52,74 +52,78 @@ func (s *FileService) SaveFile(part *multipart.Part, fileName string, dirSave st
 	return filePath, nil
 }
 
-func (s *FileService) GetDir() string {
-	return s.dir
+func (s *FileService) CreateFullPath(filePath string) error {
+	return os.MkdirAll(filePath, 0755)
 }
 
-func (s *FileService) GetMKVFiles() []string {
-	filesPath := make([]string, 0)
-
-	fullPath := filepath.Join(s.dir, convertDir)
-
-	files, err := os.ReadDir(fullPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, file := range files {
-		if !file.IsDir() {
-			filesPath = append(filesPath, filepath.Join(fullPath, file.Name()))
-		}
-	}
-
-	return filesPath
-}
-
-func (s *FileService) MoveToConverted(filename string) error {
-	convertedDir := filepath.Join(s.dir, converted)
-
-	return s.moveFile(filename, convertedDir)
-}
-
-func (s *FileService) MoveToEndedAudio(filename string) error {
-	movedDir := filepath.Join(s.dir, audioEndDir)
-
-	return s.moveFile(filename, movedDir)
-}
-
-func (s *FileService) MoveToTranscribe(filename string) error {
-	transcribeDir := filepath.Join(s.dir, transcribe)
-
-	return s.moveFile(filename, transcribeDir)
-}
-
-func (s *FileService) moveFile(filename string, moveDir string) error {
-	// создаём папку если нет
-	err := os.MkdirAll(moveDir, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	dst := filepath.Join(moveDir, filepath.Base(filename))
-
-	return os.Rename(filename, dst)
-}
-
-func (s *FileService) GetAudioFiles() []string {
-	filesPath := make([]string, 0)
-
-	fullPath := filepath.Join(s.dir, audioDir)
-
-	files, err := os.ReadDir(fullPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, file := range files {
-		if !file.IsDir() {
-			filesPath = append(filesPath, filepath.Join(fullPath, file.Name()))
-		}
-	}
-
-	return filesPath
-}
+//func (s *FileService) GetDir() string {
+//	return s.dir
+//}
+//
+//func (s *FileService) GetMKVFiles() []string {
+//	filesPath := make([]string, 0)
+//
+//	fullPath := filepath.Join(s.dir, convertDir)
+//
+//	files, err := os.ReadDir(fullPath)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	for _, file := range files {
+//		if !file.IsDir() {
+//			filesPath = append(filesPath, filepath.Join(fullPath, file.Name()))
+//		}
+//	}
+//
+//	return filesPath
+//}
+//
+//func (s *FileService) MoveToConverted(filename string) error {
+//	convertedDir := filepath.Join(s.dir, converted)
+//
+//	return s.moveFile(filename, convertedDir)
+//}
+//
+//func (s *FileService) MoveToEndedAudio(filename string) error {
+//	movedDir := filepath.Join(s.dir, audioEndDir)
+//
+//	return s.moveFile(filename, movedDir)
+//}
+//
+//func (s *FileService) MoveToTranscribe(filename string) error {
+//	transcribeDir := filepath.Join(s.dir, transcribe)
+//
+//	return s.moveFile(filename, transcribeDir)
+//}
+//
+//func (s *FileService) moveFile(filename string, moveDir string) error {
+//	// создаём папку если нет
+//	err := os.MkdirAll(moveDir, os.ModePerm)
+//	if err != nil {
+//		return err
+//	}
+//
+//	dst := filepath.Join(moveDir, filepath.Base(filename))
+//
+//	return os.Rename(filename, dst)
+//}
+//
+//func (s *FileService) GetAudioFiles() []string {
+//	filesPath := make([]string, 0)
+//
+//	fullPath := filepath.Join(s.dir, audioDir)
+//
+//	files, err := os.ReadDir(fullPath)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	for _, file := range files {
+//		if !file.IsDir() {
+//			filesPath = append(filesPath, filepath.Join(fullPath, file.Name()))
+//		}
+//	}
+//
+//	return filesPath
+//}

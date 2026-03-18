@@ -34,3 +34,35 @@ func (r *AudioRepository) GetByID(ctx context.Context, id string) (model.Audio, 
 func (r *AudioRepository) Update(ctx context.Context, audio model.Audio) error {
 	return r.db.Save(&audio).Error
 }
+
+func (r *AudioRepository) GetForConvert(ctx context.Context) ([]model.Audio, error) {
+	var audios []model.Audio
+	err := r.db.
+		Where("need_convert = true").
+		Find(&audios).Error
+	return audios, err
+}
+
+func (r *AudioRepository) GetForTranscribe(ctx context.Context) ([]model.Audio, error) {
+	var audios []model.Audio
+	err := r.db.
+		Where("has_transcribed = false and has_audio = true").
+		Find(&audios).Error
+	return audios, err
+}
+
+func (r *AudioRepository) GetTranscribeToSend(ctx context.Context) ([]model.Audio, error) {
+	var audios []model.Audio
+	err := r.db.
+		Where("has_transcribed = true and id = 'b54915d6-216d-4fa1-b097-9853564b98b1' and is_message_send = false").
+		Find(&audios).Error
+	return audios, err
+}
+
+func (r *AudioRepository) GetMessagesForRead(ctx context.Context) ([]model.Audio, error) {
+	var audios []model.Audio
+	err := r.db.
+		Where("is_message_send = true and is_message_read = false").
+		Find(&audios).Error
+	return audios, err
+}

@@ -25,8 +25,9 @@ type AppConfig struct {
 }
 
 type BotConfig struct {
-	URL   string
-	Token string
+	URL    string
+	Token  string
+	ChatID string
 }
 
 type CORSConfig struct {
