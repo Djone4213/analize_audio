@@ -54,7 +54,7 @@ func (r *AudioRepository) GetForTranscribe(ctx context.Context) ([]model.Audio, 
 func (r *AudioRepository) GetTranscribeToSend(ctx context.Context) ([]model.Audio, error) {
 	var audios []model.Audio
 	err := r.db.
-		Where("has_transcribed = true and id = 'b54915d6-216d-4fa1-b097-9853564b98b1' and is_message_send = false").
+		Where("has_transcribed = true and is_message_send = false").
 		Find(&audios).Error
 	return audios, err
 }

@@ -47,17 +47,27 @@ func main() {
 		log.Fatalf("Ошибка создания пути для сохранения файлов с результатами ответов: %v", err)
 	}
 
-	// 🔥 запускаем worker
 	cServ := service.NewConverterService(aServ, outputAudioDir)
+
+	// 🔥 запускаем worker
 	convWorker := worker.NewConverterWorker(cServ, time.Minute)
 	convWorker.Start()
 
-	// 🔥 worker для транскрибации
 	bhServ := service.NewBotHubService(cfg.Bot.URL, cfg.Bot.Token, aServ, outputTranscribeDir, outputContentDir)
+
+	//bhServ.ProcessSendMessages()
+
+	// 🔥 worker для транскрибации
 	transcribeWorker := worker.NewTranscribeWorker(bhServ, time.Minute)
 	transcribeWorker.Start()
 
-	bhServ.ProcessReadMessages()
+	// 🔥 worker для отправки сообщений
+	sendMessagesWorker := worker.NewSendMessagesWorker(bhServ, time.Minute)
+	sendMessagesWorker.Start()
+
+	// 🔥 worker для чтения ответов
+	readMessagesWorker := worker.NewReadMessagesWorker(bhServ, time.Minute)
+	readMessagesWorker.Start()
 
 	aHand := handlers.NewAudioHandler(aServ, fServ)
 

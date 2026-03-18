@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -101,6 +102,7 @@ func (h *AudioHandler) Add(w http.ResponseWriter, r *http.Request) {
 		NeedConvert:     true,
 		HasAudio:        false,
 		HasTranscribed:  false,
+		CreatedAt:       time.Now(),
 	}
 
 	if err := h.audioService.Create(r.Context(), audio); err != nil {

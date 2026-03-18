@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 const audioUrl = "openai/v1/audio/transcriptions"
@@ -131,7 +132,7 @@ func (s *BotHubService) ProcessReadMessages() {
 			continue
 		}
 
-		messageTextFullPath, err := s.ReadMessage(*audio.BotHubMessageID)
+		messageTextFullPath, err := s.ReadMessage(*audio.BotHubMessageID, audio.ID)
 		if err != nil {
 			log.Printf("transcribe error: %v", err)
 			continue
@@ -141,7 +142,7 @@ func (s *BotHubService) ProcessReadMessages() {
 	}
 }
 
-func (s *BotHubService) ReadMessage(messageID string) (string, error) {
+func (s *BotHubService) ReadMessage(messageID string, filename string) (string, error) {
 	if messageID == "" {
 		return "", fmt.Errorf("messageID is empty")
 	}
@@ -187,8 +188,8 @@ func (s *BotHubService) ReadMessage(messageID string) (string, error) {
 	}
 
 	// формируем путь к файлу (по messageID)
-	fileName := fmt.Sprintf("%s.txt", messageID)
-	outputPath := filepath.Join(s.outputContentDir, fileName)
+	filename = fmt.Sprintf("%s.txt", filename)
+	outputPath := filepath.Join(s.outputContentDir, filename)
 
 	// сохраняем content
 	err = os.WriteFile(outputPath, []byte(result.Content), 0644)
@@ -244,7 +245,9 @@ func (s *BotHubService) SendMessage(messageFilePath string) (string, error) {
 	req.Header.Set("Authorization", "Bearer "+s.token)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 5 * time.Minute,
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
