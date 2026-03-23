@@ -5,6 +5,7 @@ export default function UploadFile() {
     const [file, setFile] = useState(null);
     const [thems, setThems] = useState([""]);
     const navigate = useNavigate();
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const handleAddThem = () => {
         setThems((prev) => [...prev, ""]);
@@ -30,7 +31,7 @@ export default function UploadFile() {
             }
         });
 
-        await fetch("http://localhost:8080/api/audio", {
+        await fetch(`${API_URL}/api/audio`, {
             method: "POST",
             body: formData,
         });

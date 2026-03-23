@@ -1,5 +1,7 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 export async function getAudioList() {
-    const res = await fetch("http://localhost:8080/api/audio");
+    const res = await fetch(`${API_URL}/api/audio`);
 
     if (!res.ok) {
         throw new Error("Ошибка загрузки файлов");
@@ -9,7 +11,7 @@ export async function getAudioList() {
 }
 
 export async function getAudioById(id) {
-    const res = await fetch(`http://localhost:8080/api/audio/${id}`);
+    const res = await fetch(`${API_URL}/api/audio/${id}`);
 
     if (!res.ok) {
         throw new Error("Ошибка загрузки файлов");
