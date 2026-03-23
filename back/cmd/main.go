@@ -53,7 +53,12 @@ func main() {
 	convWorker := worker.NewConverterWorker(cServ, time.Minute)
 	convWorker.Start()
 
-	bhServ := service.NewBotHubService(cfg.Bot.URL, cfg.Bot.Token, aServ, outputTranscribeDir, outputContentDir)
+	bhServ := service.NewBotHubService(cfg.Bot.URL,
+		cfg.Bot.Token,
+		aServ,
+		cfg.App.Dir,
+		outputTranscribeDir,
+		outputContentDir)
 
 	//bhServ.ProcessSendMessages()
 

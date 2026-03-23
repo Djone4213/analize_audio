@@ -23,6 +23,7 @@ type BotHubService struct {
 	url                   string
 	token                 string
 	audioService          *AudioService
+	dir                   string
 	outputTranscribeDir   string
 	outputContentDir      string
 	messagePromt          string
@@ -30,8 +31,10 @@ type BotHubService struct {
 	//fileService *FileService
 }
 
-func NewBotHubService(url string, token string, audioService *AudioService, outputTranscribeDir string, outputContentDir string) *BotHubService {
-	promt, err := os.ReadFile("D:\\Work\\Projects\\analize_audio\\back\\promt.txt")
+func NewBotHubService(url string, token string,
+	audioService *AudioService, dir string, outputTranscribeDir string,
+	outputContentDir string) *BotHubService {
+	promt, err := os.ReadFile(filepath.Join(dir, "promt.txt"))
 
 	var messagePromt string
 
@@ -39,7 +42,7 @@ func NewBotHubService(url string, token string, audioService *AudioService, outp
 		messagePromt = strings.TrimSpace(string(promt))
 	}
 
-	answerTemplate, err := os.ReadFile("D:\\Work\\Projects\\analize_audio\\back\\template_query.txt")
+	answerTemplate, err := os.ReadFile(filepath.Join(dir, "template_query.txt"))
 
 	var messageAnswerTemplate string
 
@@ -51,6 +54,7 @@ func NewBotHubService(url string, token string, audioService *AudioService, outp
 		url:                   url,
 		token:                 token,
 		audioService:          audioService,
+		dir:                   dir,
 		outputTranscribeDir:   outputTranscribeDir,
 		outputContentDir:      outputContentDir,
 		messagePromt:          messagePromt,
@@ -84,7 +88,9 @@ func (s *BotHubService) ProcessSendMessages() {
 			continue
 		}
 
-		messageID, err := s.SendMessage(*audio.TranscribedFullFilePath)
+		themes, _ := s.audioService.getAudioThemes(context.Background(), audio.ID)
+
+		messageID, err := s.SendMessage(*audio.TranscribedFullFilePath, themes)
 		if err != nil {
 			log.Printf("Send Message error: %v", err)
 		}
@@ -200,7 +206,7 @@ func (s *BotHubService) ReadMessage(messageID string, filename string) (string, 
 	return outputPath, nil
 }
 
-func (s *BotHubService) SendMessage(messageFilePath string) (string, error) {
+func (s *BotHubService) SendMessage(messageFilePath string, themes []string) (string, error) {
 	if s.messagePromt == "" {
 		return "", fmt.Errorf("messagePromt file is empty")
 	}
@@ -219,7 +225,20 @@ func (s *BotHubService) SendMessage(messageFilePath string) (string, error) {
 		return "", fmt.Errorf("message file is empty")
 	}
 
-	messageText := fmt.Sprintf("%s\n%s\n%s", s.messagePromt, messageData, s.messageAnswerTemplate)
+	var builder strings.Builder
+	var serviceInfo string
+
+	if themes != nil {
+		if len(themes) != 0 {
+			builder.WriteString("Вот список соотвествия обсужаеой темы и чек-листа\n")
+			for _, theme := range themes {
+				builder.WriteString(fmt.Sprintf("%s\n", theme))
+			}
+			serviceInfo = builder.String()
+		}
+	}
+
+	messageText := fmt.Sprintf("%s\n%s\n%s\n%s", s.messagePromt, messageData, serviceInfo, s.messageAnswerTemplate)
 
 	message := map[string]interface{}{
 		"chatId":   "076d6306-eac5-4a44-bad3-83022deac37f",

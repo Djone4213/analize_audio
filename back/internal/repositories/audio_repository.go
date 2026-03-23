@@ -68,6 +68,12 @@ func (r *AudioRepository) GetMessagesForRead(ctx context.Context) ([]model.Audio
 	return audios, err
 }
 
-func (r *AudioRepository) CreateThem(ctx context.Context, audioThem model.AudioThem) error {
+func (r *AudioRepository) AddThem(ctx context.Context, audioThem model.AudioThem) error {
 	return r.db.Create(&audioThem).Error
+}
+
+func (r *AudioRepository) GetAudioThemes(ctx context.Context, id string) ([]model.AudioThem, error) {
+	var audioThemes []model.AudioThem
+	err := r.db.Where("audio_id =", id).Find(&audioThemes).Error
+	return audioThemes, err
 }

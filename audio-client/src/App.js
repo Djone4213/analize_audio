@@ -9,7 +9,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/upload" element={<UploadFile />} />
-                <Route path="/details/:id" element={<Detailsпш />} />
+                <Route path="/details/:id" element={<Details />} />
             </Routes>
         </BrowserRouter>
     );

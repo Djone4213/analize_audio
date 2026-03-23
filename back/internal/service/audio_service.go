@@ -23,7 +23,7 @@ func (s *AudioService) Create(ctx context.Context, audio model.Audio, thems []st
 	}
 
 	for _, them := range thems {
-		_ = s.audioRep.CreateThem(ctx, model.AudioThem{
+		_ = s.audioRep.AddThem(ctx, model.AudioThem{
 			AudioID: audioCreate.ID,
 			Theme:   them,
 		})
@@ -115,4 +115,17 @@ func (s *AudioService) SaveMessageTextFullPath(ctx context.Context, id string, m
 	audio.IsMessageRead = messageTextFullFilePath != ""
 
 	return s.audioRep.Update(ctx, audio)
+}
+
+func (s *AudioService) getAudioThemes(ctx context.Context, id string) ([]string, error) {
+	audioThemes, err := s.audioRep.GetAudioThemes(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	themes := make([]string, len(audioThemes))
+	for i, theme := range audioThemes {
+		themes[i] = theme.Theme
+	}
+	return themes, nil
 }
